@@ -40,7 +40,7 @@ exports.Signup = async (req,res)=>{
     }
 }
 
-exports.Login= async(res,req)=>{
+exports.Login= async(req,res)=>{
     const {email, password}=req.body;
     try{
         if(!email || !password){
@@ -62,7 +62,7 @@ exports.Login= async(res,req)=>{
             });
         }
 
-        const token = jwt.sign({id:user.rows[0].id}, process.env.JWT_SECRET,{expiresIn: '1d'})
+        const token = jwt.sign({id:user.rows[0].id}, process.env.JWT_SECRET || 'migisha@YezuAkuzwe123!',{expiresIn: '1d'})
 
         res.status(200).json({ 
             message:'Login successful',
