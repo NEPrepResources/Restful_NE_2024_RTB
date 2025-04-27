@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const authRoutes= require('./routes/auth.routes')
+const employeeRouters= require('./routes/employee.routes')
 require('dotenv').config()
 const { protect }= require('./middleware/authMiddleware')
 
@@ -10,6 +11,7 @@ app.use(cors())
 app.use(express.json())
 
 app.use('/api/auth', authRoutes)
+app.use('/employee', employeeRouters)
 
 app.get('/me', protect, (req,res)=>{
     res.send('Protected api')
