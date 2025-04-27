@@ -10,12 +10,12 @@ exports.protect = async(req,res, next)=>{
     }
     try{
         token = token.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'migisha@YezuAkuzwe123!');
         req.user=decoded.id;
         next();
     }catch(err){
         console.log(err);
-        res.status(401).json({
+        return res.status(401).json({
             message:'Invalid token...'
         })
     }
