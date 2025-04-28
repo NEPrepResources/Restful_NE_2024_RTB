@@ -137,11 +137,12 @@ exports.deleteEmployee = async(req,res)=>{
                 error:'Employee not found'
             })
         }
-        const action = await contract.recordAction(deletedEmployee.rows[0].id, "delete")
+        // const action = await contract.recordAction(deletedEmployee.rows[0].id, "delete", {gasLimit: 500000})
+        // const estimatedGas = await contract.estimateGas.recordAction(deletedEmployee.rows[0].id, "delete");
+        // console.log("Estimated gas:", estimatedGas.toString());
 
         const responseData = {
             success: 'Employee deleted successfully',
-            action
         }
         res.status(200).json(JSON.parse(safeJsonStringify(responseData)))
     }catch(err){
