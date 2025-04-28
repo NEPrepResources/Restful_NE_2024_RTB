@@ -1,4 +1,11 @@
 const pool = require("../config/db")
+const contract = require("../utils/contract")
+
+const safeJsonStringify=(obj)=>{
+    return JSON.stringify(obj, (key, value)=>
+        typeof value === 'bigint' ? value.toString() : value
+    );
+}
 
 exports.createEmployee = async(req, res)=>{
     try{
@@ -19,10 +26,16 @@ exports.createEmployee = async(req, res)=>{
             'INSERT INTO employees (firstname, lastname, national_identity, telephone, email, department, position, laptop_manufacturer, laptop_model, serial_number) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
             [firstname, lastname, national_identity, telephone, email, department, position, laptop_manufacturer, laptop_model, serial_number]
         );
+        const action= await contract.recordAction(newEmployee.rows[0].id, "create")
 
-        res.status(200).json(newEmployee.rows[0], {
-            success:'Employee added successfully ...'
-        })
+        const responseData = {
+            employee: newEmployee.rows[0],
+            success:'Employee added successfully ...',
+            action
+        }
+
+        res.status(200).json(JSON.parse(safeJsonStringify(responseData)))
+
     }catch(err){
         console.log(err)
         res.status(500).json({
@@ -53,7 +66,14 @@ exports.getEmployeeById = async(req,res)=>{
             })
         }
 
-        res.status(200).json(employee.rows[0])
+        const [action, timestamp]=await contract.getEmployeeAction(id);
+        const responseData = {
+            ...employee.rows[0],
+            blockchain_action: action,
+            blockchain_timestamp: timestamp
+        }
+
+        res.status(200).json(JSON.parse(safeJsonStringify(responseData)))
     }catch(err){
         console.log(err)
         res.status(500).json({
@@ -92,7 +112,13 @@ exports.updateEmployee = async(req,res)=>{
                 error:'Employee not found ...'
             })
         }
-        res.status(200).json(updatedEmployee.rows[0])
+
+        const action = await contract.recordAction(updatedEmployee.rows[0].id, "update")
+        const responseData={
+            ... updatedEmployee.rows[0],
+            action
+        }
+        res.status(200).json(JSON.parse(safeJsonStringify(responseData)))
     }catch(err){
         console.log(err);
         res.status(500).json({
@@ -111,10 +137,13 @@ exports.deleteEmployee = async(req,res)=>{
                 error:'Employee not found'
             })
         }
+        const action = await contract.recordAction(deletedEmployee.rows[0].id, "delete")
 
-        res.status(200).json({
-            success:'Employee deleted successfully'
-        })
+        const responseData = {
+            success: 'Employee deleted successfully',
+            action
+        }
+        res.status(200).json(JSON.parse(safeJsonStringify(responseData)))
     }catch(err){
         console.log(err);
         res.status(500).json({

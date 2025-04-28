@@ -17,3 +17,4 @@ router.put('/:id', protect,  updateEmployee)
 router.delete('/:id', protect, deleteEmployee)
 
 module.exports=router
+
