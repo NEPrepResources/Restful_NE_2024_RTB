@@ -5,6 +5,7 @@ import EmployeeForm from "./pages/EmployeeForm";
 import EmployeeList from "./pages/EmployeeList";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Home from "./pages/Home"
 
 const App = () =>{
   return(
@@ -12,7 +13,7 @@ const App = () =>{
       <Router>
         <Routes>
           <Route exact path="/" element={EmployeeList}/>
-          {/* <Route path="/" element={EmployeeForm}/> */}
+          <Route path="/home" element={Home}/>
           <Route path="/login" element={Login}/>
           <Route path="/signup" element={Signup}/>
           
