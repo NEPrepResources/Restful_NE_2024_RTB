@@ -1,24 +1,25 @@
 const express = require('express')
 const cors = require('cors')
-const authRoutes= require('./routes/auth.routes')
-const employeeRouters= require('./routes/employee.routes')
+const authRoutes = require('./routes/auth.routes')
+const employeeRouters = require('./routes/employee.routes')
 require('dotenv').config()
-const { protect }= require('./middleware/authMiddleware')
+const { protect } = require('./middleware/authMiddleware')
 
-const app= express()
+const app = express()
 
 app.use(cors())
-app.use(express.json())
+app.use(express.json({ limit: '10mb' }))  
+app.use(express.urlencoded({ extended: true, limit: '10mb' }))  
 
 app.use('/api/auth', authRoutes)
 app.use('/employee', employeeRouters)
 
-app.get('/me', protect, (req,res)=>{
+app.get('/me', protect, (req, res) => {
     res.send('Protected api')
 })
 
-app.get('/', (req,res)=>{
+app.get('/', (req, res) => {
     res.send('Equipment rental system is running...')
 })
 
-module.exports = app;
+module.exports = app

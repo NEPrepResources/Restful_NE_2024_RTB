@@ -1,70 +1,83 @@
-import React, { useState, useEffect, act } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import { recordAction } from '../utils/contract'
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
-const EmployeeForm = ({ employee={}, actionType='add', onSubmit }) =>{
-    const { user } = useAuth()
-    const [ formData, setFormData ] = useState({
-        firstname:'',
-        lastname:'',
-        national_identity:'',
-        telephone:'',
-        email:'',
-        department:'',
-        position:'',
-        laptop_manufacturer:'',
-        laptop_model:'',
-        serial_number:''
-    })
+const EmployeeForm = ({ employee = {}, actionType = 'add', onSubmit }) => {
+    const [formData, setFormData] = useState({
+        firstname: '',
+        lastname: '',
+        national_identity: '',
+        telephone: '',
+        email: '',
+        department: '',
+        position: '',
+        laptop_manufacturer: '',
+        laptop_model: '',
+        serial_number: ''
+    });
 
-    useEffect(()=>{
-        if(employee) setFormData(employee);
-    },[employee])
+    useEffect(() => {
+        if (employee) setFormData(employee);
+    }, [employee]);
 
-    const handleChange = (e)=>{
-        const { name, value } =e.target
-        setFormData((prev) =>({...prev, [name]: value}))
-    }
-
-    const handleSubmit = async(e) =>{
-        e.preventDefault()
-
-        if (onSubmit) await onSubmit(formData); 
-
-        await recordAction(formData.id || 0, actionType);
-        alert(`Employee ${actionType === 'update' ? 'updated' : 'added' } and recorded on blockchain successfully!`)
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    return(
-        <form onSubmit={handleSubmit} className='space-y-4'>
-            {[
-                ['firstName', 'First name'],
-                ['lastName', 'Last name'],
-                ['national_identity', 'National ID'],
-                ['telephone', 'Telephone'],
-                ['email', 'Email'],
-                ['department', 'Department'],
-                ['position', 'Position'],
-                ['laptop_manufacturer', 'Laptop manufacturer'],
-                ['laptop_model', 'Laptop model'],
-                ['serial_number', 'Serial number']
-            ].map(([key, placeholder])=>(
-                <input
-                key={key}
-                type={key === 'email' ? 'email' : key === 'telephone' ? 'tel' : 'text'}
-                name={key}
-                value={formData[key]}
-                onChange={handleChange}
-                placeholder={placeholder}
-                className='input w-full px-4 py-2 border rounded'
-                required
-                />
-            ))}            
-            <button type='submit' className='btn btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700'>
-                {actionType === 'update' ? 'Update employee' : 'Add employee'}
-            </button>
-        </form>
-    )
-}
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await onSubmit(formData);
+            alert(`Employee ${actionType === 'update' ? 'updated' : 'added'} successfully!`);
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            alert('Failed to submit form. Please try again.');
+        }
+    };
 
-export default EmployeeForm
+    const fields = [
+        { name: 'firstname', label: 'First Name', type: 'text' },
+        { name: 'lastname', label: 'Last Name', type: 'text' },
+        { name: 'national_identity', label: 'National ID', type: 'text' },
+        { name: 'telephone', label: 'Telephone', type: 'tel' },
+        { name: 'email', label: 'Email', type: 'email' },
+        { name: 'department', label: 'Department', type: 'text' },
+        { name: 'position', label: 'Position', type: 'text' },
+        { name: 'laptop_manufacturer', label: 'Laptop Manufacturer', type: 'text' },
+        { name: 'laptop_model', label: 'Laptop Model', type: 'text' },
+        { name: 'serial_number', label: 'Serial Number', type: 'text' }
+    ];
+
+    return (
+        <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4">
+                {actionType === 'update' ? 'Update Employee' : 'Add New Employee'}
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                {fields.map((field) => (
+                    <div key={field.name}>
+                        <label className="block text-sm font-medium text-gray-700">
+                            {field.label}
+                        </label>
+                        <input
+                            type={field.type}
+                            name={field.name}
+                            value={formData[field.name]}
+                            onChange={handleChange}
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required
+                        />
+                    </div>
+                ))}
+                <button
+                    type="submit"
+                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                    {actionType === 'update' ? 'Update Employee' : 'Add Employee'}
+                </button>
+            </form>
+        </div>
+    );
+};
+
+export default EmployeeForm;

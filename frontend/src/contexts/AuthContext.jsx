@@ -1,48 +1,75 @@
 import React, { createContext, useState, useContext } from 'react'
-// const API_BASE_URL = import.meta.env.REACT_API_BASE_URL || 'http://localhost:5000'
 const API_BASE_URL= 'http://localhost:5000'
 const AuthContext=createContext()
 
 export const useAuth=()=> useContext(AuthContext)
 
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(null)
 
+    const login = async (email, password) => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },  // Fixed typo
+                body: JSON.stringify({ email, password })
+            })
 
-export const AuthProvider =({ children }) =>{
-    const [ user, setUser ] = useState(null)
+            if (!res.ok) {
+                const errorData = await res.json()
+                throw new Error(errorData.error || 'Login failed')
+            }
 
-    const login = async( email, password)=>{
-        const res = await fetch(`${API_BASE_URL}/api/auth/login`,{
-            method:'POST',
-            headers:{'Content-Type':'applicatio/json'},
-            body: JSON.stringify({email, password})
-        });
-        if(!res.ok) throw new Error('Login failed')
+            const data = await res.json()
+            
+            if (!data.token) {
+                throw new Error('No authentication token received')
+            }
 
-        const data = await res.json();
-        localStorage.setItem('token', data.token);
-        setUser(data.user)
+            localStorage.setItem('token', data.token)
+            setUser(data.user || { email })  // Fallback if user data not returned
+            return data
+        } catch (err) {
+            console.error('Login error:', err)
+            throw err
+        }
     }
 
-    const signup = async( names, email, password, confirmPassword )=>{
-        const res = await fetch(`${API_BASE_URL}/api/auth/signup`,{
-            method:'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({names, email, password, confirmPassword})
-        })
+    const signup = async (names, email, password, confirmPassword) => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    name: names,  // Changed to match backend expectation
+                    email, 
+                    password, 
+                    confirmPassword 
+                })
+            })
 
-        if(!res.ok) throw new Error('Signup failed!')
+            if (!res.ok) {
+                const errorData = await res.json()
+                throw new Error(errorData.error || 'Signup failed!')
+            }
 
-        const data=await res.json()
-        localStorage.setItem('token', data.token)
-        setUser(data, user)
+            const data = await res.json()
+            localStorage.setItem('token', data.token)
+            setUser(data.user || { email })
+            return data
+        } catch (err) {
+            console.error('Signup error:', err)
+            throw err
+        }
     }
 
-    const logout=()=>{
+    const logout = () => {
+        localStorage.removeItem('token')
         setUser(null)
     }
 
-    return(
-        <AuthContext.Provider value={{user, login, logout}}>
+    return (
+        <AuthContext.Provider value={{ user, login, logout, signup }}>
             {children}
         </AuthContext.Provider>
     )
