@@ -13,21 +13,26 @@ const Login = () =>{
         setFormData({...formData, [e.target.name]: e.target.value})
     }
 
-    const handleSubmit = async(e)=>{
-        e.preventDefault()
-        setError('')
-        setLoading(true)
-
-        try{
-            await login(formData.email, formData.password)
-            navigate('/home')
-        }catch(err){
-            console.error(err)
-            setError('Invalid credentials. Please try again!')
-        }finally{
-            setLoading(false)
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+      
+        try {
+          console.log('Starting login process');
+          await login(formData.email, formData.password);
+          
+          await new Promise(resolve => setTimeout(resolve, 50));
+          
+          console.log('Login successful, navigating to /home');
+          navigate('/home');
+        } catch (err) {
+          console.error('Login error:', err);
+          setError(err.message || 'Invalid credentials. Please try again!');
+        } finally {
+          setLoading(false);
         }
-    };
+      };
 
     return(
         <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">

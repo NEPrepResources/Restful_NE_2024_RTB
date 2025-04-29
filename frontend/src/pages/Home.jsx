@@ -1,15 +1,17 @@
 import React, { useState, useEffect} from "react";
-import Link , { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from "../contexts/AuthContext";
+
+const API_BASE_URL = 'http://localhost:5000';
 
 const Home =()=>{
     const { user, logout }=useAuth();
     const [ employees, setEmployees ] = useState([])
     const navigate = useNavigate()
-    const fetchEmployess = async () =>{
+    const fetchEmployes = async () =>{
         try{
             const token = localStorage.getItem('token')
-            const res = await fetch(`${import.meta.env.REACT_API_BASE_URL}/employees`,{
+            const res = await fetch(`${API_BASE_URL}/employee`,{
                 headers:{ Authorization: `Bearer ${token}`}
             })
 
@@ -23,7 +25,7 @@ const Home =()=>{
     }
 
     const handleLogout=()=>{
-        logout(),
+        logout()
         navigate('/login')
     }
 
@@ -31,7 +33,7 @@ const Home =()=>{
         if(!window.confirm('Are you sure you want to delete this employee?'))return;
         try{
             const token = localStorage.getItem('token')
-            await fetch(`${import.meta.env.REACT_API_BASE_URL}/employee/${id}`,{
+            await fetch(`${import.meta.env.VITE_API_BASE_URL}/employee/${id}`,{
                 method:'POST',
                 headers: {Authorization: `Bearer ${token}`}
             })
@@ -41,7 +43,7 @@ const Home =()=>{
         }
     }
     useEffect(()=>{
-        fetchEmployess();
+        fetchEmployes();
     }, [])
 
     return(
@@ -74,12 +76,12 @@ const Home =()=>{
                         <tbody>
                             {employees.map(emp=>(
                                 <tr key={emp.id} className="hover:bg-gray-100">
-                                    <td className="p-2 border">{emp.firstName} {emp.firstName}</td>
+                                    <td className="p-2 border">{emp.firstName} {emp.lastName}</td>
                                     <td className="p-2 border">{emp.email}</td>
                                     <td className="p-2 border">{emp.telephone}</td>
                                     <td className="p-2 border flex gap-2 justify-center">
                                         <Link to={`/view/${emp.id}`} className="text-blue-600 hover:underline">View</Link>
-                                        <Link to={`/edit/${emp.id}`} className="text-yellow-600 hover:underline">Edit</Link>
+                                        <Link to={`/update/${emp.id}`} className="text-yellow-600 hover:underline">Update</Link>
                                         <button
                                         onClick={()=>handleDelete(emp.id)}
                                         className="text-red-600 hover:underline"

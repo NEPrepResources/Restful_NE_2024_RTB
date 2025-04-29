@@ -1,45 +1,78 @@
-import React, { useState, useEffect, act } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import { recordAction } from '../utils/contract'
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate, useParams } from 'react-router-dom';
+import { recordAction } from '../utils/contract';
+import axios from 'axios';
 
-const EmployeeForm = ({ employee={}, actionType='add', onSubmit }) =>{
-    const { user } = useAuth()
-    const [ formData, setFormData ] = useState({
-        firstname:'',
-        lastname:'',
-        national_identity:'',
-        telephone:'',
-        email:'',
-        department:'',
-        position:'',
-        laptop_manufacturer:'',
-        laptop_model:'',
-        serial_number:''
-    })
+const API_BASE_URL = 'http://localhost:5000';
 
-    useEffect(()=>{
-        if(employee) setFormData(employee);
-    },[employee])
+const EmployeeForm = ({ actionType }) => {
+    const { user } = useAuth();
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+        firstname: '',
+        lastname: '',
+        national_identity: '',
+        telephone: '',
+        email: '',
+        department: '',
+        position: '',
+        laptop_manufacturer: '',
+        laptop_model: '',
+        serial_number: ''
+    });
 
-    const handleChange = (e)=>{
-        const { name, value } =e.target
-        setFormData((prev) =>({...prev, [name]: value}))
-    }
+    useEffect(() => {
+        if (actionType === 'update' && id) {
+            const token = localStorage.getItem('token');
+            axios.get(`${API_BASE_URL}/employee/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then(res => setFormData(res.data))
+            .catch(err => alert('Error loading the employee'));
+        }
+    }, [actionType, id]);
 
-    const handleSubmit = async(e) =>{
-        e.preventDefault()
-
-        if (onSubmit) await onSubmit(formData); 
-
-        await recordAction(formData.id || 0, actionType);
-        alert(`Employee ${actionType === 'update' ? 'updated' : 'added' } and recorded on blockchain successfully!`)
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    return(
-        <form onSubmit={handleSubmit} className='space-y-4'>
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const token = localStorage.getItem('token');
+        
+        try {
+            if (actionType === 'add') {
+                await axios.post(`${API_BASE_URL}/employee`, formData, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+            } else {
+                await axios.put(`${API_BASE_URL}/employee/${id}`, formData, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+            }
+            await recordAction(formData.id || 0, actionType);
+            alert(`Employee ${actionType === 'update' ? 'updated' : 'added'} and recorded on blockchain successfully!`);
+            navigate('/home'); // Redirect after success
+        } catch (err) {
+            console.error(err);
+            alert(err.response?.data?.message || 'Error saving employee!');
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className='space-y-2 flex flex-col items-center justify-center p-10'>
             {[
-                ['firstName', 'First name'],
-                ['lastName', 'Last name'],
+                ['firstname', 'First name'],
+                ['lastname', 'Last name'],
                 ['national_identity', 'National ID'],
                 ['telephone', 'Telephone'],
                 ['email', 'Email'],
@@ -48,23 +81,23 @@ const EmployeeForm = ({ employee={}, actionType='add', onSubmit }) =>{
                 ['laptop_manufacturer', 'Laptop manufacturer'],
                 ['laptop_model', 'Laptop model'],
                 ['serial_number', 'Serial number']
-            ].map(([key, placeholder])=>(
+            ].map(([key, placeholder]) => (
                 <input
-                key={key}
-                type={key === 'email' ? 'email' : key === 'telephone' ? 'tel' : 'text'}
-                name={key}
-                value={formData[key]}
-                onChange={handleChange}
-                placeholder={placeholder}
-                className='input w-full px-4 py-2 border rounded'
-                required
+                    key={key}
+                    type={key === 'email' ? 'email' : key === 'telephone' ? 'tel' : 'text'}
+                    name={key}
+                    value={formData[key]}
+                    onChange={handleChange}
+                    placeholder={placeholder}
+                    className='input w-[50%] px-4 py-2 border rounded'
+                    required
                 />
             ))}            
-            <button type='submit' className='btn btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700'>
-                {actionType === 'update' ? 'Update employee' : 'Add employee'}
+            <button type='submit' className='btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700'>
+                {actionType === 'add' ? 'Add employee' : 'Update employee'}
             </button>
         </form>
-    )
-}
+    );
+};
 
-export default EmployeeForm
+export default EmployeeForm;
