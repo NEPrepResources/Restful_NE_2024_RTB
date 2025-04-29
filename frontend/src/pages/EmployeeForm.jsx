@@ -1,101 +1,68 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, act } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { recordAction } from '../utils/contract'
 
-const EmployeeForm = ({ employee, actionType }) =>{
+const EmployeeForm = ({ employee={}, actionType='add', onSubmit }) =>{
     const { user } = useAuth()
-    const [ formData, setFormData ] = useState(employee || {})
+    const [ formData, setFormData ] = useState({
+        firstname:'',
+        lastname:'',
+        national_identity:'',
+        telephone:'',
+        email:'',
+        department:'',
+        position:'',
+        laptop_manufacturer:'',
+        laptop_model:'',
+        serial_number:''
+    })
+
+    useEffect(()=>{
+        if(employee) setFormData(employee);
+    },[employee])
+
+    const handleChange = (e)=>{
+        const { name, value } =e.target
+        setFormData((prev) =>({...prev, [name]: value}))
+    }
 
     const handleSubmit = async(e) =>{
         e.preventDefault()
 
+        if (onSubmit) await onSubmit(formData); 
+
         await recordAction(formData.id || 0, actionType);
-        alert('Employee is recorded on blockchain!')
+        alert(`Employee ${actionType === 'update' ? 'updated' : 'added' } and recorded on blockchain successfully!`)
     };
 
     return(
         <form onSubmit={handleSubmit} className='space-y-4'>
-            <input
-            type='text'
-            name='firstname'
-            value={formData.firstname}
-            onChange={(e)=>setFormData({...formData, firstname: e.target.value})}
-            placeholder='Your firstname'
-            className='input'
-            />
-            <input
-            type='text'
-            name='lastname'
-            value={formData.lastname}
-            onChange={(e)=>setFormData({...formData, lastname: e.target.value})}
-            placeholder='Your lastname'
-            className='input'
-            />
-            <input
-            type='text'
-            name='national_identity'
-            value={formData.national_identity}
-            onChange={(e)=>setFormData({...formData, national_identity: e.target.value})}
-            placeholder='Your NID'
-            className='input'
-            />
-            <input
-            type='tel'
-            name='telephone'
-            value={formData.telephone}
-            onChange={(e)=>setFormData({...formData, telephone: e.target.value})}
-            placeholder='Your telephone'
-            className='input'
-            />
-            <input
-            type='email'
-            name='email'
-            value={formData.email}
-            onChange={(e)=>setFormData({...formData, email: e.target.value})}
-            placeholder='Your email'
-            className='input'
-            />
-            <input
-            type='text'
-            name='department'
-            value={formData.department}
-            onChange={(e)=>setFormData({...formData, department: e.target.value})}
-            placeholder='Your department'
-            className='input'
-            />
-            <input
-            type='text'
-            name='position'
-            value={formData.position}
-            onChange={(e)=>setFormData({...formData, position: e.target.value})}
-            placeholder='Your position'
-            className='input'
-            />
-            <input
-            type='text'
-            name='laptop_manufacturer'
-            value={formData.laptop_manufacturer}
-            onChange={(e)=>setFormData({...formData, laptop_manufacturer: e.target.value})}
-            placeholder='Your laptop manufacturer'
-            className='input'
-            />
-            <input
-            type='text'
-            name='laptop_model'
-            value={formData.laptop_model}
-            onChange={(e)=>setFormData({...formData, laptop_model: e.target.value})}
-            placeholder='Your laptop model'
-            className='input'
-            />
-            <input
-            type='text'
-            name='serial_number'
-            value={formData.serial_number}
-            onChange={(e)=>setFormData({...formData, serial_number: e.target.value})}
-            placeholder='Your serial number'
-            className='input'
-            />
-            <button type='submit' className='btn'>Add employee</button>
+            {[
+                ['firstName', 'First name'],
+                ['lastName', 'Last name'],
+                ['national_identity', 'National ID'],
+                ['telephone', 'Telephone'],
+                ['email', 'Email'],
+                ['department', 'Department'],
+                ['position', 'Position'],
+                ['laptop_manufacturer', 'Laptop manufacturer'],
+                ['laptop_model', 'Laptop model'],
+                ['serial_number', 'Serial number']
+            ].map(([key, placeholder])=>(
+                <input
+                key={key}
+                type={key === 'email' ? 'email' : key === 'telephone' ? 'tel' : 'text'}
+                name={key}
+                value={formData[key]}
+                onChange={handleChange}
+                placeholder={placeholder}
+                className='input w-full px-4 py-2 border rounded'
+                required
+                />
+            ))}            
+            <button type='submit' className='btn btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700'>
+                {actionType === 'update' ? 'Update employee' : 'Add employee'}
+            </button>
         </form>
     )
 }
