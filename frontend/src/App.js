@@ -1,18 +1,25 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from "./contexts/AuthContext";
 import EmployeeForm from "./pages/EmployeeForm";
 import EmployeeList from "./pages/EmployeeList";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
 const App = () =>{
   return(
     <AuthProvider>
       <Router>
-        <Switch>
+        <Routes>
           <Route exact path="/" element={EmployeeList}/>
-          <Route exact path="/form" element={EmployeeForm}/>
-        </Switch>
+          {/* <Route path="/" element={EmployeeForm}/> */}
+          <Route path="/login" element={Login}/>
+          <Route path="/signup" element={Signup}/>
+          
+        </Routes>
       </Router>
     </AuthProvider>
   )
 }
+
+export default App;
