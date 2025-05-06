@@ -6,16 +6,22 @@ const Home = () => {
     const { user, logout } = useAuth();
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate();
 
-    const fetchEmployees = async () => {
+    const fetchEmployees = async (query = '') => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:5000/employee', {
+            const url = query 
+                ? `http://localhost:5000/employee/search?query=${encodeURIComponent(query)}`
+                : 'http://localhost:5000/employee';
+            
+            const res = await fetch(url, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             if (!res.ok) throw new Error('Failed to fetch employees');
+            
             const data = await res.json();
             setEmployees(data);
         } catch (err) {
@@ -42,6 +48,7 @@ const Home = () => {
             });
 
             if (!res.ok) throw new Error('Failed to delete employee');
+            
             setEmployees(prev => prev.filter(emp => emp.id !== id));
             alert('Employee deleted successfully');
         } catch (err) {
@@ -79,14 +86,30 @@ const Home = () => {
                     </div>
                 </header>
 
+                {/* Search Bar */}
+                <div className="mb-6">
+                    <input
+                        type="text"
+                        placeholder="Search employees..."
+                        value={searchQuery}
+                        onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                            fetchEmployees(e.target.value);
+                        }}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="p-4 border-b">
-                        <h2 className="text-xl font-semibold text-gray-800">Employees</h2>
+                        <h2 className="text-xl font-semibold text-gray-800">
+                            {searchQuery ? `Search Results for "${searchQuery}"` : 'All Employees'}
+                        </h2>
                     </div>
                     
                     {employees.length === 0 ? (
                         <div className="p-8 text-center text-gray-500">
-                            No employees found. Add your first employee!
+                            {searchQuery ? 'No matching employees found' : 'No employees found. Add your first employee!'}
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
@@ -95,7 +118,7 @@ const Home = () => {
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                     </tr>
                                 </thead>
@@ -109,7 +132,7 @@ const Home = () => {
                                                 {emp.email}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                                                {emp.telephone}
+                                                {emp.department}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <div className="flex space-x-4">
@@ -120,7 +143,7 @@ const Home = () => {
                                                         View
                                                     </Link>
                                                     <Link 
-                                                        to={`/edit/${emp.id}`} 
+                                                        to={`/update/${emp.id}`} 
                                                         className="text-yellow-600 hover:text-yellow-900"
                                                     >
                                                         Edit

@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-const EmployeeForm = ({ employee = {}, actionType = 'add', onSubmit }) => {
+const EmployeeForm = ({ employee = {}, actionType = 'add' }) => {
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         firstname: '',
         lastname: '',
@@ -14,9 +17,13 @@ const EmployeeForm = ({ employee = {}, actionType = 'add', onSubmit }) => {
         laptop_model: '',
         serial_number: ''
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     useEffect(() => {
-        if (employee) setFormData(employee);
+        if (employee && employee.id) {
+            setFormData(employee);
+        }
     }, [employee]);
 
     const handleChange = (e) => {
@@ -26,12 +33,37 @@ const EmployeeForm = ({ employee = {}, actionType = 'add', onSubmit }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+        setLoading(true);
+
         try {
-            await onSubmit(formData);
-            alert(`Employee ${actionType === 'update' ? 'updated' : 'added'} successfully!`);
-        } catch (error) {
-            console.error('Error submitting form:', error);
-            alert('Failed to submit form. Please try again.');
+            const token = localStorage.getItem('token');
+            const url = actionType === 'add' 
+                ? 'http://localhost:5000/employee'
+                : `http://localhost:5000/employee/${employee.id}`;
+            
+            const method = actionType === 'add' ? 'POST' : 'PUT';
+
+            const response = await fetch(url, {
+                method,
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Operation failed');
+            }
+
+            navigate('/home');
+        } catch (err) {
+            console.error('Form submission error:', err);
+            setError(err.message || 'Failed to save employee');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -49,32 +81,52 @@ const EmployeeForm = ({ employee = {}, actionType = 'add', onSubmit }) => {
     ];
 
     return (
-        <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">
-                {actionType === 'update' ? 'Update Employee' : 'Add New Employee'}
+        <div className="container mx-auto px-4 py-8 ">
+            <h2 className="text-2xl font-bold mb-6">
+                {actionType === 'add' ? 'Add New Employee' : 'Edit Employee'}
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                {fields.map((field) => (
-                    <div key={field.name}>
-                        <label className="block text-sm font-medium text-gray-700">
-                            {field.label}
-                        </label>
-                        <input
-                            type={field.type}
-                            name={field.name}
-                            value={formData[field.name]}
-                            onChange={handleChange}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            required
-                        />
-                    </div>
-                ))}
-                <button
-                    type="submit"
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                    {actionType === 'update' ? 'Update Employee' : 'Add Employee'}
-                </button>
+            
+            {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    {error}
+                </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
+                <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
+                    {fields.map(field => (
+                        <div key={field.name} className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {field.label}
+                            </label>
+                            <input
+                                type={field.type}
+                                name={field.name}
+                                value={formData[field.name] || ''}
+                                onChange={handleChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                required
+                            />
+                        </div>
+                    ))}
+                </div>
+
+                <div className="flex justify-end space-x-4 mt-6">
+                    <button
+                        type="button"
+                        onClick={() => navigate('/home')}
+                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {loading ? 'Processing...' : actionType === 'add' ? 'Add Employee' : 'Update Employee'}
+                    </button>
+                </div>
             </form>
         </div>
     );

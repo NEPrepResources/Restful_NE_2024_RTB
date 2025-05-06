@@ -1,22 +1,23 @@
-const express = require('express')
-const { protect } = require('../middleware/authMiddleware')
+const express = require('express');
+const router = express.Router();
 const { 
     createEmployee, 
     getAllEmployees, 
     getEmployeeById, 
     updateEmployee, 
-    deleteEmployee, 
-} = require('../controllers/employee.controller')
+    deleteEmployee,
+    searchEmployees
+} = require('../controllers/employee.controller');
+const { protect } = require('../middleware/authMiddleware');
+const { checkEmployeeOwnership } = require('../middleware/ownershipMiddleware');
 
-const router= express.Router()
+router.use(protect);
 
-router.post('/', protect, createEmployee);
-router.get('/', protect, getAllEmployees);
-router.get('/:id', protect, getEmployeeById);
-router.put('/:id', protect,  updateEmployee)
-router.delete('/:id', protect, deleteEmployee)
+router.post('/', createEmployee);
+router.get('/', getAllEmployees);
+router.get('/search', searchEmployees);
+router.get('/:id', checkEmployeeOwnership, getEmployeeById);
+router.put('/:id', checkEmployeeOwnership, updateEmployee);
+router.delete('/:id', checkEmployeeOwnership, deleteEmployee);
 
-module.exports=router
-
-
-
+module.exports = router;

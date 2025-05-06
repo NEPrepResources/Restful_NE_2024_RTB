@@ -1,4 +1,3 @@
-// ProtectedRoutes.jsx
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Login from '../pages/Login';
@@ -16,6 +15,7 @@ const ProtectedRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
 
+      {/* Protected Routes */}
       <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
       <Route path="/add" element={<PrivateRoute><EmployeeForm actionType="add" /></PrivateRoute>} />
       <Route path="/update/:id" element={<PrivateRoute><EmployeeForm actionType="update" /></PrivateRoute>} />
