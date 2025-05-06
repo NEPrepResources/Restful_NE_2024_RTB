@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate, useParams } from 'react-router-dom';
+import { recordAction } from '../utils/contract';
+import axios from 'axios';
 
-const EmployeeForm = ({ employee = {}, actionType = 'add' }) => {
+const API_BASE_URL = 'http://localhost:5000';
+
+const EmployeeForm = ({ actionType }) => {
     const { user } = useAuth();
+    const { id } = useParams();
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         firstname: '',
@@ -17,14 +22,19 @@ const EmployeeForm = ({ employee = {}, actionType = 'add' }) => {
         laptop_model: '',
         serial_number: ''
     });
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
     useEffect(() => {
-        if (employee && employee.id) {
-            setFormData(employee);
+        if (actionType === 'update' && id) {
+            const token = localStorage.getItem('token');
+            axios.get(`${API_BASE_URL}/employee/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then(res => setFormData(res.data))
+            .catch(err => alert('Error loading the employee'));
         }
-    }, [employee]);
+    }, [actionType, id]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -33,102 +43,60 @@ const EmployeeForm = ({ employee = {}, actionType = 'add' }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setLoading(true);
-
+        const token = localStorage.getItem('token');
+        
         try {
-            const token = localStorage.getItem('token');
-            const url = actionType === 'add' 
-                ? 'http://localhost:5000/employee'
-                : `http://localhost:5000/employee/${employee.id}`;
-            
-            const method = actionType === 'add' ? 'POST' : 'PUT';
-
-            const response = await fetch(url, {
-                method,
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(formData)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Operation failed');
+            if (actionType === 'add') {
+                await axios.post(`${API_BASE_URL}/employee`, formData, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+            } else {
+                await axios.put(`${API_BASE_URL}/employee/${id}`, formData, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
             }
-
-            navigate('/home');
+            await recordAction(formData.id || 0, actionType);
+            alert(`Employee ${actionType === 'update' ? 'updated' : 'added'} and recorded on blockchain successfully!`);
+            navigate('/home'); // Redirect after success
         } catch (err) {
-            console.error('Form submission error:', err);
-            setError(err.message || 'Failed to save employee');
-        } finally {
-            setLoading(false);
+            console.error(err);
+            alert(err.response?.data?.message || 'Error saving employee!');
         }
     };
 
-    const fields = [
-        { name: 'firstname', label: 'First Name', type: 'text' },
-        { name: 'lastname', label: 'Last Name', type: 'text' },
-        { name: 'national_identity', label: 'National ID', type: 'text' },
-        { name: 'telephone', label: 'Telephone', type: 'tel' },
-        { name: 'email', label: 'Email', type: 'email' },
-        { name: 'department', label: 'Department', type: 'text' },
-        { name: 'position', label: 'Position', type: 'text' },
-        { name: 'laptop_manufacturer', label: 'Laptop Manufacturer', type: 'text' },
-        { name: 'laptop_model', label: 'Laptop Model', type: 'text' },
-        { name: 'serial_number', label: 'Serial Number', type: 'text' }
-    ];
-
     return (
-        <div className="container mx-auto px-4 py-8 ">
-            <h2 className="text-2xl font-bold mb-6">
-                {actionType === 'add' ? 'Add New Employee' : 'Edit Employee'}
-            </h2>
-            
-            {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    {error}
-                </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
-                <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
-                    {fields.map(field => (
-                        <div key={field.name} className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                {field.label}
-                            </label>
-                            <input
-                                type={field.type}
-                                name={field.name}
-                                value={formData[field.name] || ''}
-                                onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                required
-                            />
-                        </div>
-                    ))}
-                </div>
-
-                <div className="flex justify-end space-x-4 mt-6">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/home')}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        {loading ? 'Processing...' : actionType === 'add' ? 'Add Employee' : 'Update Employee'}
-                    </button>
-                </div>
-            </form>
-        </div>
+        <form onSubmit={handleSubmit} className='space-y-2 flex flex-col items-center justify-center p-10'>
+            {[
+                ['firstname', 'First name'],
+                ['lastname', 'Last name'],
+                ['national_identity', 'National ID'],
+                ['telephone', 'Telephone'],
+                ['email', 'Email'],
+                ['department', 'Department'],
+                ['position', 'Position'],
+                ['laptop_manufacturer', 'Laptop manufacturer'],
+                ['laptop_model', 'Laptop model'],
+                ['serial_number', 'Serial number']
+            ].map(([key, placeholder]) => (
+                <input
+                    key={key}
+                    type={key === 'email' ? 'email' : key === 'telephone' ? 'tel' : 'text'}
+                    name={key}
+                    value={formData[key]}
+                    onChange={handleChange}
+                    placeholder={placeholder}
+                    className='input w-[50%] px-4 py-2 border rounded'
+                    required
+                />
+            ))}            
+            <button type='submit' className='btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700'>
+                {actionType === 'add' ? 'Add employee' : 'Update employee'}
+            </button>
+        </form>
     );
 };
 

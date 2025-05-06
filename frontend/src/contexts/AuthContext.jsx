@@ -1,76 +1,93 @@
-import React, { createContext, useState, useContext } from 'react'
-const API_BASE_URL= 'http://localhost:5000'
-const AuthContext=createContext()
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
-export const useAuth=()=> useContext(AuthContext)
+const API_BASE_URL = 'http://localhost:5000';
+const AuthContext = createContext();
+
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null)
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const login = async (email, password) => {
-        try {
-            const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },  // Fixed typo
-                body: JSON.stringify({ email, password })
-            })
-
-            if (!res.ok) {
-                const errorData = await res.json()
-                throw new Error(errorData.error || 'Login failed')
-            }
-
-            const data = await res.json()
-            
-            if (!data.token) {
-                throw new Error('No authentication token received')
-            }
-
-            localStorage.setItem('token', data.token)
-            setUser(data.user || { email })  // Fallback if user data not returned
-            return data
-        } catch (err) {
-            console.error('Login error:', err)
-            throw err
+        console.log('Attempting login with:', email);
+        const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+      
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Login failed');
         }
-    }
+      
+        const data = await res.json();
+        console.log('Login response data:', data);
+        
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Ensure this is the last state update
+        setUser(data.user);
+        console.log('User state set to:', data.user);
+      };
 
-    const signup = async (names, email, password, confirmPassword) => {
-        try {
-            const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    name: names,  // Changed to match backend expectation
-                    email, 
-                    password, 
-                    confirmPassword 
-                })
-            })
+    const signup = async (name, email, password, confirmPassword) => {
+        const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password, confirmPassword })
+        });
 
-            if (!res.ok) {
-                const errorData = await res.json()
-                throw new Error(errorData.error || 'Signup failed!')
+        const text = await res.text();
+        if (!res.ok) {
+            try {
+                const json = JSON.parse(text);
+                throw new Error(json.message || 'Signup failed');
+            } catch (e) {
+                throw new Error(text || 'Signup failed');
             }
-
-            const data = await res.json()
-            localStorage.setItem('token', data.token)
-            setUser(data.user || { email })
-            return data
-        } catch (err) {
-            console.error('Signup error:', err)
-            throw err
         }
-    }
+
+        const data = JSON.parse(text);
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setUser(data.user);
+    };
 
     const logout = () => {
-        localStorage.removeItem('token')
-        setUser(null)
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+    };
+
+useEffect(() => {
+    console.log('AuthProvider mounting - checking localStorage');
+    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    
+    console.log('Found token:', !!token);
+    console.log('Found user:', storedUser);
+  
+    if (token && storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        console.log('Setting user from localStorage:', parsedUser);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error("Failed to parse user data:", error);
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
     }
+    setLoading(false);
+  }, []);
+    
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, signup }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
             {children}
         </AuthContext.Provider>
-    )
-}
+    );
+};
