@@ -1,69 +1,99 @@
-import React, { useState, useEffect} from "react";
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = "http://localhost:5000";
 
-const Home =()=>{
-    const { user, logout }=useAuth();
-    const [ employees, setEmployees ] = useState([])
-    const navigate = useNavigate()
-    const fetchEmployes = async () =>{
-        try{
-            const token = localStorage.getItem('token')
-            const res = await fetch(`${API_BASE_URL}/employee`,{
-                headers:{ Authorization: `Bearer ${token}`}
-            })
+const Home = () => {
+    const { user, logout } = useAuth();
+    const [employees, setEmployees] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const navigate = useNavigate();
 
-            if(!res.ok) throw Error('Failed to fetch employees');
+    const fetchEmployees = async (query = "") => {
+        try {
+            const token = localStorage.getItem("token");
+            const endpoint = query
+                ? `${API_BASE_URL}/employee/search?query=${encodeURIComponent(query)}`
+                : `${API_BASE_URL}/employee`;
 
-            const data = await res.json()
-            setEmployees(data)
-        }catch(err){
-            console.error(err)
+            const res = await fetch(endpoint, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (!res.ok) throw new Error("Failed to fetch employees");
+
+            const data = await res.json();
+            setEmployees(data);
+        } catch (err) {
+            console.error(err);
         }
-    }
+    };
 
-    const handleLogout=()=>{
-        logout()
-        navigate('/login')
-    }
+    const handleSearchChange = (e) => {
+        const query = e.target.value;
+        setSearchQuery(query);
+        fetchEmployees(query);
+    };
 
-    const handleDelete = async(id) =>{
-        if(!window.confirm('Are you sure you want to delete this employee?'))return;
-        try{
-            const token = localStorage.getItem('token')
-            await fetch(`${API_BASE_URL}/employee/${id}`,{
-                method:'DELETE',
-                headers: {Authorization: `Bearer ${token}`}
-            })
-            setEmployees(prev=>prev.filter(emp=>emp.id!==id))
-        }catch(err){
-            console.error(err)
+    const handleLogout = () => {
+        logout();
+        navigate("/login");
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this employee?")) return;
+        try {
+            const token = localStorage.getItem("token");
+            await fetch(`${API_BASE_URL}/employee/${id}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setEmployees((prev) => prev.filter((emp) => emp.id !== id));
+        } catch (err) {
+            console.error(err);
         }
-    }
-    useEffect(()=>{
-        fetchEmployes();
-    }, [])
+    };
 
-    return(
+    useEffect(() => {
+        fetchEmployees();
+    }, []);
+
+    return (
         <div className="min-h-screen p-6 bg-gray-100">
             <header className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Welcome, {user?.name} 👋</h1>
                 <div className="flex gap-3">
-                    <Link to='/add' className="btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                    <Link
+                        to="/add"
+                        className="btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+                    >
                         +Add Employee
                     </Link>
-                    <button onClick={handleLogout} className="btn bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                    <button
+                        onClick={handleLogout}
+                        className="btn bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                    >
                         Logout
                     </button>
                 </div>
             </header>
+
+            <div className="mb-4">
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    placeholder="Search employees..."
+                    className="w-full p-2 border border-gray-300 rounded"
+                />
+            </div>
+
             <div className="bg-white rounded shadow p-4">
                 <h2 className="text-xl font-semibold mb-4">Employees</h2>
-                {employees.length===0?(
+                {employees.length === 0 ? (
                     <p>No employee found.</p>
-                ):(
+                ) : (
                     <table className="w-full border-collapse">
                         <thead>
                             <tr className="bg-gray-200">
@@ -74,17 +104,23 @@ const Home =()=>{
                             </tr>
                         </thead>
                         <tbody>
-                            {employees.map(emp=>(
+                            {employees.map((emp) => (
                                 <tr key={emp.id} className="hover:bg-gray-100">
-                                    <td className="p-2 border">{emp.firstname} {emp.lastname}</td>
+                                    <td className="p-2 border">
+                                        {emp.firstname} {emp.lastname}
+                                    </td>
                                     <td className="p-2 border">{emp.email}</td>
                                     <td className="p-2 border">{emp.telephone}</td>
                                     <td className="p-2 border flex gap-2 justify-center">
-                                        <Link to={`/view/${emp.id}`} className="text-blue-600 hover:underline">View</Link>
-                                        <Link to={`/update/${emp.id}`} className="text-yellow-600 hover:underline">Update</Link>
+                                        <Link to={`/view/${emp.id}`} className="text-blue-600 hover:underline">
+                                            View
+                                        </Link>
+                                        <Link to={`/update/${emp.id}`} className="text-yellow-600 hover:underline">
+                                            Update
+                                        </Link>
                                         <button
-                                        onClick={()=>handleDelete(emp.id)}
-                                        className="text-red-600 hover:underline"
+                                            onClick={() => handleDelete(emp.id)}
+                                            className="text-red-600 hover:underline"
                                         >
                                             Delete
                                         </button>
