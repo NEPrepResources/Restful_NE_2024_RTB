@@ -32,7 +32,7 @@ Before getting started, ensure that you have the following installed on your loc
 1. Clone the repository to your local machine:
    ```bash
    git clone https://github.com/NEPrepResources/Restful_NE_2024_RTB.git
-````
+   ```
 
 2. Navigate to the project directory:
 
