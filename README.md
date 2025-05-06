@@ -24,7 +24,7 @@ https://docs.google.com/document/d/1EbrN7mkInwOiQh7jCu0zA5pIEGFpfQuxA-G37jBSSYc/
 ## Prerequisites
 Before getting started, ensure that you have the following installed on your local machine:
 - **Node.js** and **npm** (Node Package Manager)
-- **MongoDB** (or your preferred database setup)
+- **Postgres** (or your preferred database setup)
 - **Git** (for cloning the repo)
 
 ## How to Clone the Repository
@@ -47,7 +47,7 @@ Before getting started, ensure that you have the following installed on your loc
    npm install
    ```
 
-4. Set up your MongoDB database and update the connection details in `backend/config/database.js`.
+4. Set up your Postgres database and update the connection details in `backend/config/database.js`.
 
 5. Run the backend server:
 
