@@ -62,7 +62,7 @@ const EmployeeForm = ({ actionType }) => {
                 });
             }
             // await recordAction(formData.id || 0, actionType);
-            alert(`Employee ${actionType === 'update' ? 'updated' : 'added'} and recorded on blockchain successfully!`);
+            alert(`Employee ${actionType === 'update' ? 'updated' : 'added'} successfully!`);
             navigate('/home');
         } catch (err) {
             console.error(err);
