@@ -18,7 +18,7 @@ https://docs.google.com/document/d/1EbrN7mkInwOiQh7jCu0zA5pIEGFpfQuxA-G37jBSSYc/
 ## Tech Stack
 - **Frontend**: React, React Router, Tailwind CSS, React Toastify
 - **Backend**: Node.js, Express
-- **Database**: MongoDB (or replace with your preferred database)
+- **Database**: Postgres (or replace with your preferred database)
 - **Authentication**: JWT (JSON Web Token)
 
 ## Prerequisites
