@@ -1,4 +1,3 @@
-````markdown
 # NE_2025_RESTFUL_PREP_EQUIPMENT
 
 ## Overview
@@ -139,8 +138,3 @@ The backend server runs on `http://localhost:5000`, and the frontend runs on `ht
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-```
-
-This README is designed to provide an overview, installation steps, usage instructions, and troubleshooting tips for both the client and developers working with the app.
-```
