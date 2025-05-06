@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";  // import toastify styles
 
 const API_BASE_URL = "http://localhost:5000";
 
@@ -27,6 +29,7 @@ const Home = () => {
             setEmployees(data);
         } catch (err) {
             console.error(err);
+            toast.error("Error fetching employees!");
         }
     };
 
@@ -50,8 +53,10 @@ const Home = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setEmployees((prev) => prev.filter((emp) => emp.id !== id));
+            toast.success("Employee deleted successfully!");
         } catch (err) {
             console.error(err);
+            toast.error("Error deleting employee!");
         }
     };
 
@@ -60,78 +65,82 @@ const Home = () => {
     }, []);
 
     return (
-        <div className="min-h-screen p-6 bg-gray-100">
-            <header className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Welcome, {user?.name} 👋</h1>
-                <div className="flex gap-3">
-                    <Link
-                        to="/add"
-                        className="btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-                    >
-                        +Add Employee
-                    </Link>
-                    <button
-                        onClick={handleLogout}
-                        className="btn bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-                    >
-                        Logout
-                    </button>
+        <>
+        <ToastContainer />
+            <div className="min-h-screen p-6 bg-gray-100">
+                <header className="flex justify-between items-center mb-6">
+                    <h1 className="text-2xl font-bold">Welcome, {user?.name} 👋</h1>
+                    <div className="flex gap-3">
+                        <Link
+                            to="/add"
+                            className="btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+                        >
+                            +Add Employee
+                        </Link>
+                        <button
+                            onClick={handleLogout}
+                            className="btn bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                        >
+                            Logout
+                        </button>
+                    </div>
+                </header>
+
+                <div className="mb-4">
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        placeholder="Search employees..."
+                        className="w-full p-2 border border-gray-300 rounded"
+                    />
                 </div>
-            </header>
 
-            <div className="mb-4">
-                <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    placeholder="Search employees..."
-                    className="w-full p-2 border border-gray-300 rounded"
-                />
-            </div>
-
-            <div className="bg-white rounded shadow p-4">
-                <h2 className="text-xl font-semibold mb-4">Employees</h2>
-                {employees.length === 0 ? (
-                    <p>No employee found.</p>
-                ) : (
-                    <table className="w-full border-collapse">
-                        <thead>
-                            <tr className="bg-gray-200">
-                                <th className="p-2 border">Name</th>
-                                <th className="p-2 border">Email</th>
-                                <th className="p-2 border">Phone</th>
-                                <th className="p-2 border">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {employees.map((emp) => (
-                                <tr key={emp.id} className="hover:bg-gray-100">
-                                    <td className="p-2 border">
-                                        {emp.firstname} {emp.lastname}
-                                    </td>
-                                    <td className="p-2 border">{emp.email}</td>
-                                    <td className="p-2 border">{emp.telephone}</td>
-                                    <td className="p-2 border flex gap-2 justify-center">
-                                        <Link to={`/view/${emp.id}`} className="text-blue-600 hover:underline">
-                                            View
-                                        </Link>
-                                        <Link to={`/update/${emp.id}`} className="text-yellow-600 hover:underline">
-                                            Update
-                                        </Link>
-                                        <button
-                                            onClick={() => handleDelete(emp.id)}
-                                            className="text-red-600 hover:underline"
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
+                <div className="bg-white rounded shadow p-4">
+                    <h2 className="text-xl font-semibold mb-4">Employees</h2>
+                    {employees.length === 0 ? (
+                        <p>No employee found.</p>
+                    ) : (
+                        <table className="w-full border-collapse">
+                            <thead>
+                                <tr className="bg-gray-200">
+                                    <th className="p-2 border">Name</th>
+                                    <th className="p-2 border">Email</th>
+                                    <th className="p-2 border">Phone</th>
+                                    <th className="p-2 border">Action</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
+                            </thead>
+                            <tbody>
+                                {employees.map((emp) => (
+                                    <tr key={emp.id} className="hover:bg-gray-100">
+                                        <td className="p-2 border">
+                                            {emp.firstname} {emp.lastname}
+                                        </td>
+                                        <td className="p-2 border">{emp.email}</td>
+                                        <td className="p-2 border">{emp.telephone}</td>
+                                        <td className="p-2 border flex gap-2 justify-center">
+                                            <Link to={`/view/${emp.id}`} className="text-blue-600 hover:underline">
+                                                View
+                                            </Link>
+                                            <Link to={`/update/${emp.id}`} className="text-yellow-600 hover:underline">
+                                                Update
+                                            </Link>
+                                            <button
+                                                onClick={() => handleDelete(emp.id)}
+                                                className="text-red-600 hover:underline"
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
             </div>
-        </div>
+
+        </>
     );
 };
 
