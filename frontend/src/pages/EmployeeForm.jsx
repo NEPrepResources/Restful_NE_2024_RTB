@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
-import { recordAction } from '../utils/contract';
+// import { recordAction } from '../utils/contract';
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000';
@@ -44,9 +44,11 @@ const EmployeeForm = ({ actionType }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
-        
+        console.log(`Token available: ${token}`)
+
         try {
             if (actionType === 'add') {
+                console.log(formData)
                 await axios.post(`${API_BASE_URL}/employee`, formData, {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -59,9 +61,9 @@ const EmployeeForm = ({ actionType }) => {
                     }
                 });
             }
-            await recordAction(formData.id || 0, actionType);
+            // await recordAction(formData.id || 0, actionType);
             alert(`Employee ${actionType === 'update' ? 'updated' : 'added'} and recorded on blockchain successfully!`);
-            navigate('/home'); // Redirect after success
+            navigate('/home');
         } catch (err) {
             console.error(err);
             alert(err.response?.data?.message || 'Error saving employee!');

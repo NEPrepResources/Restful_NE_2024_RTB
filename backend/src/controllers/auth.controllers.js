@@ -42,7 +42,6 @@ exports.Signup = async (req,res)=>{
 
 exports.Login = async (req, res) => {
     try {
-        // Add validation for req.body
         if (!req.body || typeof req.body !== 'object') {
             return res.status(400).json({ error: 'Invalid request body' })
         }

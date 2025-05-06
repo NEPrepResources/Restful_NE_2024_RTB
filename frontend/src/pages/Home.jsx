@@ -33,7 +33,7 @@ const Home =()=>{
         if(!window.confirm('Are you sure you want to delete this employee?'))return;
         try{
             const token = localStorage.getItem('token')
-            await fetch(`${import.meta.env.VITE_API_BASE_URL}/employee/${id}`,{
+            await fetch(`${API_BASE_URL}/employee/${id}`,{
                 method:'POST',
                 headers: {Authorization: `Bearer ${token}`}
             })
@@ -49,7 +49,7 @@ const Home =()=>{
     return(
         <div className="min-h-screen p-6 bg-gray-100">
             <header className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Welcome, {user?.names}</h1>
+                <h1 className="text-2xl font-bold">Welcome, {user?.name} 👋</h1>
                 <div className="flex gap-3">
                     <Link to='/add' className="btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
                         +Add Employee
@@ -76,7 +76,7 @@ const Home =()=>{
                         <tbody>
                             {employees.map(emp=>(
                                 <tr key={emp.id} className="hover:bg-gray-100">
-                                    <td className="p-2 border">{emp.firstName} {emp.lastName}</td>
+                                    <td className="p-2 border">{emp.firstname} {emp.lastname}</td>
                                     <td className="p-2 border">{emp.email}</td>
                                     <td className="p-2 border">{emp.telephone}</td>
                                     <td className="p-2 border flex gap-2 justify-center">

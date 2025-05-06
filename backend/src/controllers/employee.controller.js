@@ -1,5 +1,4 @@
 const pool = require("../config/db");
-const contract = require("../utils/contract");
 
 const safeJsonStringify = (obj) => {
     return JSON.stringify(obj, (key, value) =>
@@ -7,11 +6,10 @@ const safeJsonStringify = (obj) => {
     );
 }
 
-// Search Employees
 exports.searchEmployees = async (req, res) => {
     try {
         const { query } = req.query;
-        const userId = req.user.id; // Get user ID from auth middleware
+        const userId = req.user.id;
 
         const results = await pool.query(
             `SELECT * FROM employees 
@@ -36,7 +34,6 @@ exports.searchEmployees = async (req, res) => {
     }
 };
 
-// Get All Employees for Current User
 exports.getAllEmployees = async (req, res) => {
     try {
         const employees = await pool.query(
@@ -50,7 +47,6 @@ exports.getAllEmployees = async (req, res) => {
     }
 };
 
-// Create Employee with ownership
 exports.createEmployee = async (req, res) => {
     try {
         const {
@@ -83,7 +79,6 @@ exports.createEmployee = async (req, res) => {
     }
 };
 
-// Get Employee by ID with ownership check
 exports.getEmployeeById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -106,7 +101,6 @@ exports.getEmployeeById = async (req, res) => {
     }
 };
 
-// Update Employee with ownership check
 exports.updateEmployee = async (req, res) => {
     try {
         const { id } = req.params;
@@ -150,7 +144,6 @@ exports.updateEmployee = async (req, res) => {
     }
 };
 
-// Delete Employee with ownership check
 exports.deleteEmployee = async (req, res) => {
     try {
         const { id } = req.params;
