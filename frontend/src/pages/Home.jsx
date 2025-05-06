@@ -34,7 +34,7 @@ const Home =()=>{
         try{
             const token = localStorage.getItem('token')
             await fetch(`${API_BASE_URL}/employee/${id}`,{
-                method:'POST',
+                method:'DELETE',
                 headers: {Authorization: `Bearer ${token}`}
             })
             setEmployees(prev=>prev.filter(emp=>emp.id!==id))
